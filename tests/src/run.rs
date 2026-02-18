@@ -34,12 +34,12 @@ pub async fn execute_test(
     config: GpuTestConfiguration,
     test_info: Option<TestInfo>,
 ) {
+    init_logger();
+
     // If we get information externally, skip based on that information before we do anything.
     if let Some(TestInfo { skip: true, .. }) = test_info {
         return;
     }
-
-    init_logger();
 
     let _test_guard = isolation::OneTestPerProcessGuard::new();
 

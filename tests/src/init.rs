@@ -9,10 +9,7 @@ pub fn init_logger() {
     let _ = env_logger::try_init();
 
     #[cfg(target_arch = "wasm32")]
-    {
-        let _ = log::set_logger(&crate::wasm_logger::LOGGER);
-        log::set_max_level(log::Level::Info.to_level_filter());
-    }
+    let _ = console_log::init_with_level(log::Level::Info);
 }
 
 /// Initialize a wgpu instance with the options from the environment.

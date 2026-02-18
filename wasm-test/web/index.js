@@ -1,7 +1,15 @@
-import init, { tests } from "./test.js"
+import init, { run_test, gpu_report } from "./test.js"
+
 
 export function start() {
   init().then(async () => {
-    await tests();
+    window.gpu_report = gpu_report;
+
+    let url = new URL(window.location.href);
+    let name = url.searchParams.get("name");
+
+    if (name != null) {
+      await run_test(name)
+    }
   });
 }

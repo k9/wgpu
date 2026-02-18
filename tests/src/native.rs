@@ -90,23 +90,25 @@ pub fn main(tests: Vec<GpuTestInitializer>) -> MainResult {
     let report = if use_noop {
         GpuReport::noop_only()
     } else {
-        let config_text = {
-            profiling::scope!("Reading .gpuconfig");
-            &std::fs::read_to_string(format!("{}/../.gpuconfig", env!("CARGO_MANIFEST_DIR")))
-                .context(
-                    "Failed to read .gpuconfig, did you run the tests via `cargo xtask test`?",
-                )?
-        };
-        let mut report =
-            GpuReport::from_json(config_text).context("Could not parse .gpuconfig JSON")?;
+        {
+            let config_text = {
+                profiling::scope!("Reading .gpuconfig");
+                &std::fs::read_to_string(format!("{}/../.gpuconfig", env!("CARGO_MANIFEST_DIR")))
+                    .context(
+                        "Failed to read .gpuconfig, did you run the tests via `cargo xtask test`?",
+                    )?
+            };
+            let mut report =
+                GpuReport::from_json(config_text).context("Could not parse .gpuconfig JSON")?;
 
-        // Filter out the adapters that are not part of WGPU_BACKEND.
-        let wgpu_backends = wgpu::Backends::from_env().unwrap_or_default();
-        report
-            .devices
-            .retain(|report| wgpu_backends.contains(wgpu::Backends::from(report.info.backend)));
+            // Filter out the adapters that are not part of WGPU_BACKEND.
+            let wgpu_backends = wgpu::Backends::from_env().unwrap_or_default();
+            report
+                .devices
+                .retain(|report| wgpu_backends.contains(wgpu::Backends::from(report.info.backend)));
 
-        report
+            report
+        }
     };
 
     // Iterate through all the tests. Creating a test per adapter.

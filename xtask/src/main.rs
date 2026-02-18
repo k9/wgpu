@@ -11,7 +11,8 @@ mod cts;
 mod install_warp;
 mod miri;
 mod run_wasm;
-mod test;
+pub mod test;
+pub mod test_wasm;
 mod util;
 mod vendor_web_sys;
 
@@ -144,7 +145,7 @@ fn main() -> anyhow::Result<ExitCode> {
         Some("run-wasm") => run_wasm::run_wasm(shell, args, passthrough_args)?,
         Some("miri") => miri::run_miri(shell, args)?,
         Some("test") => test::run_tests(shell, args, passthrough_args)?,
-        Some("test-wasm") => test::run_wasm_tests(shell, args, passthrough_args)?,
+        Some("test-wasm") => test_wasm::run_wasm_tests(shell, args, passthrough_args)?,
         Some("vendor-web-sys") => vendor_web_sys::run_vendor_web_sys(shell, args)?,
         Some("install-warp") => install_warp::run_install_warp(shell, args)?,
         Some(subcommand) => {
