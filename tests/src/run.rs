@@ -63,11 +63,12 @@ pub async fn execute_test(
     // Print the name of the test.
     log::info!("TEST: {}", config.name);
 
-    let (device, queue) = pollster::block_on(initialize_device(
+    let (device, queue) = initialize_device(
         &adapter,
         config.params.required_features,
         config.params.required_limits.clone(),
-    ));
+    )
+    .await;
 
     let context = TestingContext {
         instance,

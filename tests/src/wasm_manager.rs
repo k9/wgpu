@@ -1,5 +1,7 @@
 #![cfg(not(target_arch = "wasm32"))]
 
+use ureq::{http::Response, Agent, Body};
+
 use crate::{native::MainResult, params::TestInfo, report::GpuReport, GpuTestInitializer};
 
 // Called when tests are run for WASM in a browser. Kicks off each
@@ -25,14 +27,18 @@ pub fn run_wasm_browser_tests(tests: Vec<GpuTestInitializer>) -> MainResult {
             );
 
             libtest_mimic::Trial::test(&full_name, move || {
-                let response = ureq::get("http://127.0.0.1:3000/run_test")
+                let agent: Agent = Agent::config_builder()
+                    .http_status_as_error(false)
+                    .build()
+                    .into();
+
+                let response = agent
+                    .get("http://127.0.0.1:3000/run_test")
+                    .query("wasm", std::env::var("CARGO_PKG_NAME")?)
                     .query("name", &test.name)
                     .call();
 
-                match response {
-                    Ok(_) => Ok(()),
-                    Err(e) => Err(e.to_string().into()),
-                }
+                handle_response(response)
             })
         })
         .collect::<Vec<_>>();
@@ -41,4 +47,15 @@ pub fn run_wasm_browser_tests(tests: Vec<GpuTestInitializer>) -> MainResult {
     libtest_mimic::run(&args, trials).exit_if_failed();
 
     Ok(())
+}
+
+fn handle_response(
+    response: Result<Response<Body>, ureq::Error>,
+) -> Result<(), libtest_mimic::Failed> {
+    let mut response = response?;
+    if response.status() != 200 {
+        Err(response.body_mut().read_to_string()?.into())
+    } else {
+        Ok(())
+    }
 }

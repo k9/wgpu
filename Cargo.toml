@@ -143,7 +143,7 @@ libfuzzer-sys = ">0.4.0,<=0.4.7"
 libloading = "0.8"
 libm = { version = "0.2.6", default-features = false }
 libtest-mimic = "0.8"
-log = "0.4.21"
+log = "0.4.25"
 macro_rules_attribute = "0.2"
 nanoserde = "0.2"
 nanorand = { version = "0.8", default-features = false, features = ["wyrand"] }

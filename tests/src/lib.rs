@@ -128,8 +128,9 @@ macro_rules! gpu_test_main {
         }
 
         #[cfg(target_arch = "wasm32")]
-        pub fn main() {
-            $tests;
+        fn main() {
+            // Ensure that value is used so that warnings don't happen.
+            let _ = $tests;
         }
 
         #[cfg(not(target_arch = "wasm32"))]

@@ -11,8 +11,8 @@ mod cts;
 mod install_warp;
 mod miri;
 mod run_wasm;
-pub mod test;
-pub mod test_wasm;
+mod test;
+mod test_wasm;
 mod util;
 mod vendor_web_sys;
 
@@ -59,6 +59,20 @@ Commands:
     --llvm-cov  Run tests with LLVM code coverage using the llvm-cov tool
     --list      List all of the tests and their executables without running them
     --retries   Number of times to retry failing tests
+
+    All extra arguments will be forwarded to cargo-nextest (NOT wgpu-info)
+
+  test-wasm
+    Run wasm tests in a browser
+
+    --list      List all of the tests and their executables without running them
+    --retries   Number of times to retry failing tests
+    --headless  Open the browser in headless mode
+    --debug     Instead of running tests, just start the test server and keep it
+                running. Tests can then be debugged individually in a browser by visiting
+                the test URL with a test name, for example:
+                http://127.0.0.1/run_test?name=wgpu_gpu::buffer_usages::buffer_usage
+                When you run a test this way, check the browser's console for output.
 
     All extra arguments will be forwarded to cargo-nextest (NOT wgpu-info)
 

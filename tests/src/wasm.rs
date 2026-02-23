@@ -2,13 +2,15 @@
 
 use crate::{
     execute_test,
+    init::init_logger,
+    initialize_html_canvas,
     report::{AdapterReport, GpuReport},
     GpuTestInitializer,
 };
 
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::wasm_bindgen;
-use wgpu::Dx12Compiler;
+use wgpu::Backends;
 
 // @todo avoid copying this from wgpu-info
 #[rustfmt::skip]
@@ -154,39 +156,52 @@ extern "C" {
 
 #[wasm_bindgen]
 pub async fn gpu_report() -> String {
-    std::panic::set_hook(Box::new(|e| {
-        test_failure(format!("{}", e));
-    }));
+    init_logger();
 
     let instance = wgpu::Instance::new({
         let mut desc = wgpu::InstanceDescriptor::default();
-        desc.backend_options.dx12.shader_compiler = Dx12Compiler::StaticDxc;
         desc.flags = wgpu::InstanceFlags::debugging();
-        desc.with_env()
+        desc.backends = Backends::from_comma_list("gles");
+        desc
     });
 
-    let adapters = instance.enumerate_adapters(wgpu::Backends::all()).await;
+    let canvas = initialize_html_canvas();
 
-    let mut devices = Vec::with_capacity(adapters.len());
-    for adapter in adapters {
-        let features = adapter.features();
-        let limits = adapter.limits();
-        let downlevel_caps = adapter.get_downlevel_capabilities();
-        let texture_format_features = TEXTURE_FORMAT_LIST
-            .into_iter()
-            .map(|format| (format, adapter.get_texture_format_features(format)))
-            .collect();
+    let surface = Some(
+        instance
+            .create_surface(wgpu::SurfaceTarget::Canvas(canvas.clone()))
+            .expect("could not create surface from canvas"),
+    );
 
-        devices.push(AdapterReport {
-            info: adapter.get_info(),
-            features,
-            limits,
-            downlevel_caps,
-            texture_format_features,
-        });
-    }
+    let adapter = instance
+        .request_adapter(&wgpu::RequestAdapterOptions {
+            compatible_surface: surface.as_ref(),
+            ..Default::default()
+        })
+        .await
+        .unwrap();
 
-    let report = GpuReport { devices };
+    log::info!("{:?}", adapter);
+
+    let features = adapter.features();
+    let limits = adapter.limits();
+    let downlevel_caps = adapter.get_downlevel_capabilities();
+    let texture_format_features = TEXTURE_FORMAT_LIST
+        .into_iter()
+        .map(|format| (format, adapter.get_texture_format_features(format)))
+        .collect();
+
+    let report = AdapterReport {
+        info: adapter.get_info(),
+        features,
+        limits,
+        downlevel_caps,
+        texture_format_features,
+    };
+
+    let report = GpuReport {
+        devices: vec![report],
+    };
 
     serde_json::to_string_pretty(&report).expect("Failed to generate gpu report")
 }

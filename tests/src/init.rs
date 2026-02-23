@@ -7,7 +7,6 @@ pub fn init_logger() {
     // We don't actually care if it fails
     #[cfg(not(target_arch = "wasm32"))]
     let _ = env_logger::try_init();
-
     #[cfg(target_arch = "wasm32")]
     let _ = console_log::init_with_level(log::Level::Info);
 }
