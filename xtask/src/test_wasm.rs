@@ -58,14 +58,12 @@ pub fn run_wasm_tests(
             build_args: vec![
                 "test",
                 "-p",
-                "wgpu-test",
+                "wgpu-examples",
                 "--no-run",
                 "--target",
                 "wasm32-unknown-unknown",
                 "--features",
                 "webgl",
-                "--test",
-                "wgpu-gpu",
             ],
         },
     ];

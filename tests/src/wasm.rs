@@ -143,6 +143,7 @@ pub const TEXTURE_FORMAT_LIST: [wgpu::TextureFormat; 118] = [
 
   export function test_failure(message) {
     window.sessionStorage.test_failure = message;
+    console.error(message);
   }
 ")]
 
@@ -212,11 +213,17 @@ pub fn main(initializers: Vec<GpuTestInitializer>, test_name: String) {
     }));
 
     wasm_bindgen_futures::spawn_local(async move {
+        let mut found_test = false;
         for initializer in initializers {
             let test = initializer();
             if test.name == test_name {
+                found_test = true;
                 execute_test(None, test, None).await;
             }
+        }
+
+        if !found_test {
+            panic!("Can't find test with this name");
         }
 
         test_success();
