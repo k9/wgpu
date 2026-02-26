@@ -159,11 +159,10 @@ extern "C" {
 pub async fn gpu_report() -> String {
     init_logger();
 
-    let instance = wgpu::Instance::new({
-        let mut desc = wgpu::InstanceDescriptor::default();
-        desc.flags = wgpu::InstanceFlags::debugging();
-        desc.backends = Backends::from_comma_list("gles");
-        desc
+    let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
+        flags: wgpu::InstanceFlags::debugging(),
+        backends: Backends::from_comma_list("gles"),
+        ..Default::default()
     });
 
     let canvas = initialize_html_canvas();
