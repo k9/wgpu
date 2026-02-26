@@ -11,13 +11,13 @@ const browser = await chromium.launch({
   args: ["--no-sandbox", "--enable-gpu"]
 });
 
-const page = await browser.newPage();
 const BASE_URL = 'http://127.0.0.1:3000';
 
 app.get('/gpu_report', async (req, res) => {
+  const page = await browser.newPage();
   let params = new URL(req.url, BASE_URL).searchParams;
   let wasm = params.get("wasm");
-  
+
   let wait_for_report = page.waitForFunction(async () => {
     return window.gpu_report != null && await window.gpu_report()
   });
@@ -28,10 +28,12 @@ app.get('/gpu_report', async (req, res) => {
 
   let report = (await wait_for_report).toString();
 
+  await page.close();
   res.status(200).send(report);
 });
 
 app.get('/run_test', async (req, res) => {
+  const page = await browser.newPage();
   let params = new URL(req.url, BASE_URL).searchParams;
   let wasm = params.get("wasm");
   let name = params.get("name");
@@ -43,11 +45,17 @@ app.get('/run_test', async (req, res) => {
   await Promise.race([
     page.waitForFunction(() => {
       return window.sessionStorage.test_success
-    }).then(() => res.sendStatus(200)),
+    }).then(() => {
+      res.sendStatus(200)
+    }),
     page.waitForFunction(() => {
       return window.sessionStorage.test_failure
-    }).then((message) => res.status(500).send(message.toString())),
+    }).then((message) => {
+      res.status(500).send(message.toString())
+    }),
   ]);
+
+  await page.close();
 });
 
 app.use('/', express.static(path.join(import.meta.dirname, '../dist')))

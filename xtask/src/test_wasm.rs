@@ -151,7 +151,7 @@ pub fn run_wasm_tests(
     } else {
         shell
             .cmd("cargo")
-            .args(["nextest", "run", "-P", "wasm", "--test-threads", "1"])
+            .args(["nextest", "run", "-P", "wasm"])
             .args(cargo_args)
             .env("TEST_WASM", "true")
             .run()?;
